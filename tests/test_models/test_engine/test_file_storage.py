@@ -71,6 +71,30 @@ test_file_storage.py'])
 class TestFileStorage(unittest.TestCase):
     """Test the FileStorage class"""
     @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def setUp(self):
+        """if file.json exists, copy contents to temp file"""
+        if os.path.isfile('./file.json') is True:
+            with open('file.json') as r:
+                instances = r.read()
+            with open('temp.json', 'w+') as w:
+                w.write(instances)
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def tearDown(self):
+        """
+        if temp file exists, copy contents back to file.json and
+        remove temp file
+        """
+        if os.path.isfile('./temp.json') is True:
+            with open('temp.json') as r:
+                instances = r.read()
+            with open('file.json', 'w') as w:
+                w.write(instances)
+            os.remove('temp.json')
+        elif os.path.isfile('./file.json') is True:
+            os.remove('file.json')
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
     def test_all_returns_dict(self):
         """Test that all returns the FileStorage.__objects attr"""
         storage = FileStorage()
@@ -113,3 +137,26 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_get(self):
+        """
+        test the get method that retrieves an object based on class name and
+        its ID
+        """
+        temp_storage = FileStorage()
+        despair = State()
+        despair.name = 'despair'
+        temp_storage.new(despair)
+        temp_obj = temp_storage.get('State', despair.id)
+        self.assertTrue(temp_obj.id == despair.id)
+        self.assertTrue(temp_obj.name == despair.name)
+
+    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    def test_count(self):
+        """
+        test the count method
+        """
+        temp_storage = FileStorage()
+        num_objs = len(temp_storage.all())
+        self.assertTrue(temp_storage.count() == num_objs)
