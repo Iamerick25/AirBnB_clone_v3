@@ -68,8 +68,61 @@ test_db_storage.py'])
                             "{:s} method needs a docstring".format(func[0]))
 
 
-class TestFileStorage(unittest.TestCase):
-    """Test the FileStorage class"""
+class TestDBStorage(unittest.TestCase):
+    """Test the DBStorage class"""
+    @classmethod
+    def setUpClass(cls):
+        """TODO"""
+        if models.storage_t == 'db':
+            os.environ["HBNB_ENV"] = "test"
+            os.environ["HBNB_MYSQL_USER"] = "hbnb_test"
+            os.environ["HBNB_MYSQL_PWD"] = "hbnb_test_pwd"
+            os.environ["HBNB_MYSQL_HOST"] = "localhost"
+            os.environ["HBNB_MYSQL_DB"] = "hbnb_test_db"
+
+    @classmethod
+    def tearDownClass(cls):
+        """TODO"""
+        if models.storage_t == 'db':
+            pass
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_count(self):
+        """TODO"""
+        count_all = models.storage.count()
+        count_states = models.storage.count(State)
+        new_state = State()
+        new_state.name = "Despair"
+        models.storage.new(new_state)
+        models.storage.save()
+
+        self.assertEqual(models.storage.count(), count_all + 1)
+        self.assertEqual(models.storage.count("State"), count_states + 1)
+
+        count_users = models.storage.count(User)
+        new_user = User()
+        new_user.email = "Erickchinyem@gmail.com"
+        new_user.password = "hydrate!"
+        models.storage.new(new_user)
+        models.storage.save()
+
+        self.assertEqual(models.storage.count(), count_all + 2)
+        self.assertEqual(models.storage.count("User"), count_users + 1)
+
+    @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
+    def test_get(self):
+        """TODO"""
+        new_state = State()
+        new_state.name = "Confusion"
+        models.storage.new(new_state)
+        models.storage.save()
+
+        self.assertIsInstance(models.storage.get("State", new_state.id), State)
+        self.assertEqual(
+                models.storage.get("State", new_state.id).id,
+                new_state.id)
+        self.assertIsNone(models.storage.get("State", None))
+
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_returns_dict(self):
         """Test that all returns a dictionaty"""
